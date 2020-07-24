@@ -2,10 +2,10 @@
   import { db } from "./firebase.js";
   import { auth } from "./firebase.js";
   import { push } from "svelte-spa-router";
+  import { storage } from "./firebase";
   let emailUser = "";
   let idUser = "";
 
-  
   auth.onAuthStateChanged((user) => {
     if (user) {
       emailUser = user.email;
@@ -17,6 +17,8 @@
   let idUodate = 0;
   let email = "";
   let users = [];
+  let ruta = "";
+  let files;
 
   db.collection("users")
     .orderBy("nombre", "asc")
@@ -24,11 +26,31 @@
       users = data.docs;
     });
   function addUser() {
-    db.collection("users").add({
-      nombre: nombre,
-      email: email,
-    });
-    limpiarDatos();
+    let file = "";
+
+    if (files && files[0]) {
+      file = files[0].name + Math.random().toString(30);
+    }
+
+    storage
+      .child("imagenes/" + file)
+      .put(files[0])
+      .then((onSnapshot) => {
+        console.log("imagen cargada");
+        onSnapshot.ref.getDownloadURL().then((url) => {
+          console.log(url);
+
+          db.collection("users").add({
+            nombre: nombre,
+            email: email,
+            ruta: url,
+          });
+          limpiarDatos();
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }
 
   function updateUser() {
@@ -70,12 +92,13 @@
 <input type="hidden" bind:value={idUodate} />
 <input type="text" placeholder="Nombre" bind:value={nombre} />
 <input type="text" placeholder="Email" bind:value={email} />
-
+<input type="file" bind:files />
 <button class="btn blue" on:click={addUser}>Guardar</button>
 <button class="btn green" on:click={updateUser}>Actualizar</button>
 
 <table class="highlight">
   <tr>
+    <th />
     <th>Id</th>
     <th>Nombre</th>
     <th>Correo</th>
@@ -86,6 +109,14 @@
   {#each users as item}
     <!-- content here -->
     <tr>
+      <td>
+        <img
+          src={item.data().ruta}
+          width="100"
+          alt=""
+          height="100"
+          class="circle" />
+      </td>
       <td>{item.id}</td>
       <td>{item.data().nombre}</td>
       <td>{item.data().email}</td>
@@ -113,4 +144,8 @@
     </tr>
   {/each}
 </table>
+
+{#if files && files[0]}
+  <p>{files[0].name}</p>
+{/if}
 <button class="btn red" on:click={salir}>Cerrar sesion</button>
