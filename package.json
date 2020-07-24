@@ -19,6 +19,7 @@
     "bootstrap": "^4.5.0",
     "firebase": "^7.17.0",
     "materialize-css": "^1.0.0-rc.2",
-    "sirv-cli": "^0.4.4"
+    "sirv-cli": "^0.4.4",
+    "svelte-spa-router": "^2.2.0"
   }
 }
