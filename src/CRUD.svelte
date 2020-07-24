@@ -44,6 +44,7 @@
             nombre: nombre,
             email: email,
             ruta: url,
+            file: file,
           });
           limpiarDatos();
         });
@@ -68,8 +69,19 @@
         user = data.data();
       });
   }
-  function deleteUser(id) {
+  function deleteUser(id, file) {
     db.collection("users").doc(id).delete();
+
+    let imagenDelete = storage.child("imagenes/" + file);
+
+    imagenDelete
+      .delete()
+      .then(() => {
+        console.log("imagen eliminada");
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }
   function limpiarDatos() {
     nombre = "";
@@ -121,7 +133,11 @@
       <td>{item.data().nombre}</td>
       <td>{item.data().email}</td>
       <td>
-        <button class="btn red" on:click={deleteUser(item.id)}>Eliminar</button>
+        <button
+          class="btn red"
+          on:click={deleteUser(item.id, item.data().file)}>
+          Eliminar
+        </button>
       </td>
       <td>
         <button
